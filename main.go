@@ -40,13 +40,15 @@ func getStats(gpxFile *gpx.GPX) *stats {
 				}
 
 				previousPoint := q.GetFirst()
+				lastPoint := q.GetLast()
+
 				curSpeed := point.SpeedBetween(&previousPoint, false)
 				if curSpeed > st.maxSpeed {
 					st.maxSpeed = curSpeed
 					st.maxSpeedPoint = point.Point
 				}
 
-				distance := getDistance(point.GetLatitude(), point.GetLongitude(), previousPoint.GetLatitude(), previousPoint.GetLongitude())
+				distance := getDistance(point.GetLatitude(), point.GetLongitude(), lastPoint.GetLatitude(), lastPoint.GetLongitude())
 				elevationDiff := getElevationDiff(point, q.GetArray())
 
 				if distance > 0 && elevationDiff != 0 && math.Abs(elevationDiff) < distance {

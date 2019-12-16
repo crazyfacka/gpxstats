@@ -45,6 +45,11 @@ func (q *Queue) GetFirst() gpx.GPXPoint {
 	return q.head.point
 }
 
+// GetLast returns the tail of the queue
+func (q *Queue) GetLast() gpx.GPXPoint {
+	return q.tail.point
+}
+
 // GetArray returns the queue as an array
 func (q *Queue) GetArray() []gpx.GPXPoint {
 	data := make([]gpx.GPXPoint, q.elements)
