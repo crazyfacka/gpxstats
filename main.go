@@ -19,31 +19,6 @@ type stats struct {
 	maxDownSlopePoint gpx.Point
 }
 
-/*
- * From: https://gist.github.com/cdipaolo/d3f8db3848278b49db68
- */
-
-func hsin(theta float64) float64 {
-	return math.Pow(math.Sin(theta/2), 2)
-}
-
-func getDistance(lat1, lon1, lat2, lon2 float64) float64 {
-	var la1, lo1, la2, lo2, r float64
-
-	la1 = lat1 * math.Pi / 180
-	lo1 = lon1 * math.Pi / 180
-	la2 = lat2 * math.Pi / 180
-	lo2 = lon2 * math.Pi / 180
-
-	r = 6378100 // Earth radius in meters
-
-	h := hsin(la2-la1) + math.Cos(la1)*math.Cos(la2)*hsin(lo2-lo1)
-
-	return 2 * r * math.Asin(math.Sqrt(h))
-}
-
-/* === */
-
 func getStats(gpxFile *gpx.GPX) *stats {
 	var st *stats
 	var q *Queue
@@ -72,7 +47,7 @@ func getStats(gpxFile *gpx.GPX) *stats {
 				}
 
 				distance := getDistance(point.GetLatitude(), point.GetLongitude(), previousPoint.GetLatitude(), previousPoint.GetLongitude())
-				elevationDiff := point.Elevation.Value() - previousPoint.Elevation.Value()
+				elevationDiff := getElevationDiff(point, q.GetArray())
 
 				if distance > 0 && elevationDiff != 0 && math.Abs(elevationDiff) < distance {
 					if elevationDiff < 0 { // Down slope
