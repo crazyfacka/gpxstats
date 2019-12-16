@@ -46,7 +46,7 @@ func getDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 func getStats(gpxFile *gpx.GPX) *stats {
 	var st *stats
-	var previousPoint gpx.GPXPoint
+	var q *Queue
 
 	st = &stats{
 		maxSpeed:     0,
@@ -54,14 +54,17 @@ func getStats(gpxFile *gpx.GPX) *stats {
 		maxDownSlope: -100,
 	}
 
+	q = NewQueue(3)
+
 	for _, track := range gpxFile.Tracks {
 		for _, segment := range track.Segments {
 			for i, point := range segment.Points {
 				if i == 0 {
-					previousPoint = point
+					q.Push(point)
 					continue
 				}
 
+				previousPoint := q.GetFirst()
 				curSpeed := point.SpeedBetween(&previousPoint, false)
 				if curSpeed > st.maxSpeed {
 					st.maxSpeed = curSpeed
@@ -87,7 +90,7 @@ func getStats(gpxFile *gpx.GPX) *stats {
 					}
 				}
 
-				previousPoint = point
+				q.Push(point)
 			}
 		}
 	}
