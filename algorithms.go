@@ -35,22 +35,54 @@ func getDistance(lat1, lon1, lat2, lon2 float64) float64 {
  * To be replaced with geometric median
  */
 
-func getMean(points []gpx.GPXPoint) float64 {
+func getMean(values []float64) float64 {
 	var total float64
 	total = 0.0
 
-	for _, v := range points {
-		total += v.Elevation.Value()
+	for _, v := range values {
+		total += v
 	}
 
-	return math.Round(total / float64(len(points)))
+	return math.Round(total / float64(len(values)))
 }
 
 func getElevationDiff(point gpx.GPXPoint, points []gpx.GPXPoint) float64 {
-	leftMean := getMean(append([]gpx.GPXPoint{point}, points[0:len(points)-1]...))
-	rightMean := getMean(points)
+	var elevationP float64
+	var elevationPoints []float64
+
+	elevationP = point.Elevation.Value()
+	elevationPoints = make([]float64, len(points))
+	for i, p := range points {
+		elevationPoints[i] = p.Elevation.Value()
+	}
+
+	leftMean := getMean(append([]float64{elevationP}, elevationPoints[0:len(points)-1]...))
+	rightMean := getMean(elevationPoints)
 
 	return leftMean - rightMean
 }
 
 /* === */
+
+var maxSpeed float64
+
+func getSpeed(points []gpx.GPXPoint) float64 {
+	var previousPoint gpx.GPXPoint
+	var speedPoints []float64
+
+	speedPoints = make([]float64, len(points)-1)
+
+	for i, p := range points {
+		if i == 0 {
+			previousPoint = p
+			continue
+		}
+
+		distance := getDistance(previousPoint.GetLatitude(), previousPoint.GetLongitude(), p.GetLatitude(), p.GetLongitude())
+		timeDiff := previousPoint.Timestamp.Sub(p.Timestamp)
+
+		speedPoints[i-1] = distance / timeDiff.Seconds() * 3.6
+	}
+
+	return getMean(speedPoints)
+}

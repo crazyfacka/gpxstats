@@ -39,10 +39,9 @@ func getStats(gpxFile *gpx.GPX) *stats {
 					continue
 				}
 
-				previousPoint := q.GetFirst()
 				lastPoint := q.GetLast()
 
-				curSpeed := point.SpeedBetween(&previousPoint, false)
+				curSpeed := getSpeed(q.GetArray())
 				if curSpeed > st.maxSpeed {
 					st.maxSpeed = curSpeed
 					st.maxSpeedPoint = point.Point
@@ -104,7 +103,7 @@ func printSingleStats(gpxFile *gpx.GPX) {
 	fmt.Println("")
 
 	fmt.Printf("Total distance: %.2f km\n", gpxFile.MovingData().MovingDistance/1000)
-	fmt.Printf("Maximum speed: %.2f km/h (%f, %f, %.2fm)\n", st.maxSpeed/10*3.6, st.maxSpeedPoint.Latitude, st.maxSpeedPoint.Longitude, st.maxSpeedPoint.Elevation.Value())
+	fmt.Printf("Maximum speed: %.2f km/h (%f, %f, %.2fm)\n", st.maxSpeed, st.maxSpeedPoint.Latitude, st.maxSpeedPoint.Longitude, st.maxSpeedPoint.Elevation.Value())
 }
 
 func printCombinedStats(gpxFiles []*gpx.GPX) {
@@ -166,7 +165,7 @@ func printCombinedStats(gpxFiles []*gpx.GPX) {
 	fmt.Println("")
 
 	fmt.Printf("Total distance: %.2f km\n", totalDistance/1000)
-	fmt.Printf("Maximum speed: %.2f km/h\n", maxSpeed/10*3.6)
+	fmt.Printf("Maximum speed: %.2f km/h\n", maxSpeed)
 }
 
 func main() {
