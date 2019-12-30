@@ -118,17 +118,20 @@ func main() {
 
 	movingTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime), 0, time.UTC)
 	stoppedTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().StoppedTime), 0, time.UTC)
+	totalTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime+gpxFile.MovingData().StoppedTime), 0, time.UTC)
 	fmt.Printf("Moving time: %02d:%02d:%02d\n", movingTime.Hour(), movingTime.Minute(), movingTime.Second())
 	fmt.Printf("Stopped time: %02d:%02d:%02d\n", stoppedTime.Hour(), stoppedTime.Minute(), stoppedTime.Second())
+	fmt.Printf("Total time: %02d:%02d:%02d\n", totalTime.Hour(), totalTime.Minute(), totalTime.Second())
 
 	fmt.Println("")
 
 	fmt.Printf("Minimum elevation: %.2fm\n", gpxFile.ElevationBounds().MinElevation)
 	fmt.Printf("Maximum elevation: %.2fm\n", gpxFile.ElevationBounds().MaxElevation)
-	fmt.Printf("Max up gradient: %.2f (%f, %f, %.2fm)\n", st.maxUpSlope, st.maxUpSlopePoint.Latitude, st.maxUpSlopePoint.Longitude, st.maxUpSlopePoint.Elevation.Value())
-	fmt.Printf("Max down gradient: %.2f (%f, %f, %.2fm)\n", st.maxDownSlope, st.maxDownSlopePoint.Latitude, st.maxDownSlopePoint.Longitude, st.maxDownSlopePoint.Elevation.Value())
+	fmt.Printf("Max up gradient: %.2f (%f, %f, %.2fm) - BETA\n", st.maxUpSlope, st.maxUpSlopePoint.Latitude, st.maxUpSlopePoint.Longitude, st.maxUpSlopePoint.Elevation.Value())
+	fmt.Printf("Max down gradient: %.2f (%f, %f, %.2fm) - BETA\n", st.maxDownSlope, st.maxDownSlopePoint.Latitude, st.maxDownSlopePoint.Longitude, st.maxDownSlopePoint.Elevation.Value())
 
 	fmt.Println("")
 
+	fmt.Printf("Total distance: %.2f km\n", gpxFile.MovingData().MovingDistance/1000)
 	fmt.Printf("Maximum speed: %.2f km/h (%f, %f, %.2fm)\n", st.maxSpeed/10*3.6, st.maxSpeedPoint.Latitude, st.maxSpeedPoint.Longitude, st.maxSpeedPoint.Elevation.Value())
 }
