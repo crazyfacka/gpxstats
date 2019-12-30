@@ -67,8 +67,11 @@ func getElevationDiff(point gpx.GPXPoint, points []gpx.GPXPoint) float64 {
 func getSpeed(points []gpx.GPXPoint) float64 {
 	var previousPoint gpx.GPXPoint
 	var speedPoints []float64
+	var invalidPoint []bool
+	var invalidPointCounter int
 
 	speedPoints = make([]float64, len(points)-1)
+	invalidPoint = make([]bool, len(points)-1)
 
 	for i, p := range points {
 		if i == 0 {
@@ -79,7 +82,25 @@ func getSpeed(points []gpx.GPXPoint) float64 {
 		distance := getDistance(previousPoint.GetLatitude(), previousPoint.GetLongitude(), p.GetLatitude(), p.GetLongitude())
 		timeDiff := previousPoint.Timestamp.Sub(p.Timestamp)
 
+		if distance <= 0 || timeDiff <= 0 {
+			invalidPoint[i-1] = true
+			invalidPointCounter++
+			continue
+		}
+
+		invalidPoint[i-1] = false
 		speedPoints[i-1] = distance / timeDiff.Seconds() * 3.6
+	}
+
+	if invalidPointCounter < len(speedPoints) && invalidPointCounter > 0 {
+		newSpeedPoints := make([]float64, len(points)-1-invalidPointCounter)
+		for i, j := 0, 0; i < len(speedPoints); i++ {
+			if invalidPoint[i] {
+				continue
+			}
+			newSpeedPoints[j] = speedPoints[i]
+			j++
+		}
 	}
 
 	return getMean(speedPoints)
