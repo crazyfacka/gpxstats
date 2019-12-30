@@ -10,6 +10,8 @@ import (
 )
 
 type stats struct {
+	invalidTime bool
+
 	maxSpeed      float64
 	maxSpeedPoint gpx.Point
 
@@ -40,6 +42,10 @@ func getStats(gpxFile *gpx.GPX) *stats {
 				}
 
 				lastPoint := q.GetLast()
+
+				if point.Timestamp.Unix() < 0 {
+					st.invalidTime = true
+				}
 
 				curSpeed := getSpeed(q.GetArray())
 				if curSpeed > st.maxSpeed {
@@ -83,31 +89,36 @@ func getTimeFormattedForStats(t time.Time) string {
 	return timeStamp
 }
 
-func printSingleStats(gpxFile *gpx.GPX) {
+func printSingleStats(gpxFile *gpx.GPX, fname string) {
 	st := getStats(gpxFile)
 
 	fmt.Println("== GPX File stats ==")
 	fmt.Println("")
 
+	fmt.Printf("Filename: %s\n", fname)
 	fmt.Printf("Name: %s\n", gpxFile.Name)
 	fmt.Printf("Description: %s\n", gpxFile.Description)
 	fmt.Printf("Author: %s\n", gpxFile.AuthorName)
 
 	fmt.Println("")
 
-	movingTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime), 0, time.UTC)
-	stoppedTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().StoppedTime), 0, time.UTC)
-	totalTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime+gpxFile.MovingData().StoppedTime), 0, time.UTC)
-	fmt.Printf("Moving time: %s\n", getTimeFormattedForStats(movingTime))
-	fmt.Printf("Stopped time: %s\n", getTimeFormattedForStats(stoppedTime))
-	fmt.Printf("Total time: %s\n", getTimeFormattedForStats(totalTime))
+	if !st.invalidTime {
+		movingTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime), 0, time.UTC)
+		stoppedTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().StoppedTime), 0, time.UTC)
+		totalTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime+gpxFile.MovingData().StoppedTime), 0, time.UTC)
+		fmt.Printf("Moving time: %s\n", getTimeFormattedForStats(movingTime))
+		fmt.Printf("Stopped time: %s\n", getTimeFormattedForStats(stoppedTime))
+		fmt.Printf("Total time: %s\n", getTimeFormattedForStats(totalTime))
+	} else {
+		fmt.Println("Time is invalid for this GPX file")
+	}
 
 	fmt.Println("")
 
 	fmt.Printf("Minimum elevation: %.2fm\n", gpxFile.ElevationBounds().MinElevation)
 	fmt.Printf("Maximum elevation: %.2fm\n", gpxFile.ElevationBounds().MaxElevation)
-	fmt.Printf("Max down gradient: %.2f (%f, %f, %.2fm) - BETA\n", st.maxDownSlope, st.maxDownSlopePoint.Latitude, st.maxDownSlopePoint.Longitude, st.maxDownSlopePoint.Elevation.Value())
-	fmt.Printf("Max up gradient: %.2f (%f, %f, %.2fm) - BETA\n", st.maxUpSlope, st.maxUpSlopePoint.Latitude, st.maxUpSlopePoint.Longitude, st.maxUpSlopePoint.Elevation.Value())
+	fmt.Printf("Max down gradient: %.2f%% (%f, %f, %.2fm) - BETA\n", st.maxDownSlope, st.maxDownSlopePoint.Latitude, st.maxDownSlopePoint.Longitude, st.maxDownSlopePoint.Elevation.Value())
+	fmt.Printf("Max up gradient: %.2f%% (%f, %f, %.2fm) - BETA\n", st.maxUpSlope, st.maxUpSlopePoint.Latitude, st.maxUpSlopePoint.Longitude, st.maxUpSlopePoint.Elevation.Value())
 
 	fmt.Println("")
 
@@ -115,42 +126,59 @@ func printSingleStats(gpxFile *gpx.GPX) {
 	fmt.Printf("Maximum speed: %.2f km/h (%f, %f, %.2fm)\n", st.maxSpeed, st.maxSpeedPoint.Latitude, st.maxSpeedPoint.Longitude, st.maxSpeedPoint.Elevation.Value())
 }
 
-func printCombinedStats(gpxFiles []*gpx.GPX) {
+func printCombinedStats(gpxFiles []*gpx.GPX, fnames []string) {
 	var st *stats
-	var movingTime, stoppedTime, minElevation, maxElevation, minGradient, maxGradient, totalDistance, maxSpeed float64
+	var movingTime, stoppedTime, minElevation, maxElevation, minGradient, maxGradient, totalDistance, maxSpeed, maxStretch float64
+	var minElevationFile, maxElevationFile, minGradientFile, maxGradientFile, maxSpeedFile, maxStretchFile string
+	var ignoredTimeFiles []string
 
 	minElevation = math.MaxFloat64
 	maxElevation = 0
 	minGradient = -100
 	maxGradient = 0
 	maxSpeed = 0
+	maxStretch = 0
 
-	for _, gpxFile := range gpxFiles {
+	for i, gpxFile := range gpxFiles {
 		st = getStats(gpxFile)
 
-		movingTime += gpxFile.MovingData().MovingTime
-		stoppedTime += gpxFile.MovingData().StoppedTime
+		if !st.invalidTime {
+			movingTime += gpxFile.MovingData().MovingTime
+			stoppedTime += gpxFile.MovingData().StoppedTime
+		} else {
+			ignoredTimeFiles = append(ignoredTimeFiles, fnames[i])
+		}
 
 		if minElevation > gpxFile.ElevationBounds().MinElevation {
 			minElevation = gpxFile.ElevationBounds().MinElevation
+			minElevationFile = fnames[i]
 		}
 
 		if maxElevation < gpxFile.ElevationBounds().MaxElevation {
 			maxElevation = gpxFile.ElevationBounds().MaxElevation
+			maxElevationFile = fnames[i]
 		}
 
 		if minGradient > st.maxDownSlope {
 			minGradient = st.maxDownSlope
+			minGradientFile = fnames[i]
 		}
 
 		if maxGradient < st.maxUpSlope {
 			maxGradient = st.maxUpSlope
+			maxGradientFile = fnames[i]
 		}
 
 		totalDistance += gpxFile.MovingData().MovingDistance
 
 		if maxSpeed < st.maxSpeed {
 			maxSpeed = st.maxSpeed
+			maxSpeedFile = fnames[i]
+		}
+
+		if gpxFile.MovingData().MovingDistance > maxStretch {
+			maxStretch = gpxFile.MovingData().MovingDistance
+			maxStretchFile = fnames[i]
 		}
 	}
 
@@ -164,17 +192,23 @@ func printCombinedStats(gpxFiles []*gpx.GPX) {
 	fmt.Printf("Stopped time: %s\n", getTimeFormattedForStats(stoppedTimeTime))
 	fmt.Printf("Total time: %s\n", getTimeFormattedForStats(totalTime))
 
+	if len(ignoredTimeFiles) > 0 {
+		fmt.Println("")
+		fmt.Printf("Files with erroneous timestamps (ignored in the counting): %+v\n", ignoredTimeFiles)
+	}
+
 	fmt.Println("")
 
-	fmt.Printf("Minimum elevation: %.2fm\n", minElevation)
-	fmt.Printf("Maximum elevation: %.2fm\n", maxElevation)
-	fmt.Printf("Max down gradient: %.2f - BETA\n", minGradient)
-	fmt.Printf("Max up gradient: %.2f - BETA\n", maxGradient)
+	fmt.Printf("Minimum elevation: %.2fm (%s)\n", minElevation, minElevationFile)
+	fmt.Printf("Maximum elevation: %.2fm (%s)\n", maxElevation, maxElevationFile)
+	fmt.Printf("Max down gradient: %.2f%% (%s) - BETA\n", minGradient, minGradientFile)
+	fmt.Printf("Max up gradient: %.2f%% (%s) - BETA\n", maxGradient, maxGradientFile)
 
 	fmt.Println("")
 
 	fmt.Printf("Total distance: %.2f km\n", totalDistance/1000)
-	fmt.Printf("Maximum speed: %.2f km/h\n", maxSpeed)
+	fmt.Printf("Max stretch: %.2f km (%s)\n", maxStretch/1000, maxStretchFile)
+	fmt.Printf("Maximum speed: %.2f km/h (%s)\n", maxSpeed, maxSpeedFile)
 }
 
 func main() {
@@ -221,8 +255,8 @@ func main() {
 
 	/* Print stats */
 	if len(gpxFiles) == 1 {
-		printSingleStats(gpxFiles[0])
+		printSingleStats(gpxFiles[0], os.Args[1])
 	} else {
-		printCombinedStats(gpxFiles)
+		printCombinedStats(gpxFiles, os.Args[1:])
 	}
 }
