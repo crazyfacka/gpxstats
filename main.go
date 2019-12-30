@@ -74,6 +74,15 @@ func getStats(gpxFile *gpx.GPX) *stats {
 	return st
 }
 
+func getTimeFormattedForStats(t time.Time) string {
+	timeStamp := t.Format("15:04:05")
+	if t.Day() != 30 {
+		timeStamp = fmt.Sprintf("%dd %s", t.Day(), timeStamp)
+	}
+
+	return timeStamp
+}
+
 func printSingleStats(gpxFile *gpx.GPX) {
 	st := getStats(gpxFile)
 
@@ -89,9 +98,9 @@ func printSingleStats(gpxFile *gpx.GPX) {
 	movingTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime), 0, time.UTC)
 	stoppedTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().StoppedTime), 0, time.UTC)
 	totalTime := time.Date(0, 0, 0, 0, 0, int(gpxFile.MovingData().MovingTime+gpxFile.MovingData().StoppedTime), 0, time.UTC)
-	fmt.Printf("Moving time: %02d:%02d:%02d\n", movingTime.Hour(), movingTime.Minute(), movingTime.Second())
-	fmt.Printf("Stopped time: %02d:%02d:%02d\n", stoppedTime.Hour(), stoppedTime.Minute(), stoppedTime.Second())
-	fmt.Printf("Total time: %02d:%02d:%02d\n", totalTime.Hour(), totalTime.Minute(), totalTime.Second())
+	fmt.Printf("Moving time: %s\n", getTimeFormattedForStats(movingTime))
+	fmt.Printf("Stopped time: %s\n", getTimeFormattedForStats(stoppedTime))
+	fmt.Printf("Total time: %s\n", getTimeFormattedForStats(totalTime))
 
 	fmt.Println("")
 
@@ -151,9 +160,9 @@ func printCombinedStats(gpxFiles []*gpx.GPX) {
 	movingTimeTime := time.Date(0, 0, 0, 0, 0, int(movingTime), 0, time.UTC)
 	stoppedTimeTime := time.Date(0, 0, 0, 0, 0, int(stoppedTime), 0, time.UTC)
 	totalTime := time.Date(0, 0, 0, 0, 0, int(movingTime+stoppedTime), 0, time.UTC)
-	fmt.Printf("Moving time: %02d:%02d:%02d\n", movingTimeTime.Hour(), movingTimeTime.Minute(), movingTimeTime.Second())
-	fmt.Printf("Stopped time: %02d:%02d:%02d\n", stoppedTimeTime.Hour(), stoppedTimeTime.Minute(), stoppedTimeTime.Second())
-	fmt.Printf("Total time: %02d:%02d:%02d\n", totalTime.Hour(), totalTime.Minute(), totalTime.Second())
+	fmt.Printf("Moving time: %s\n", getTimeFormattedForStats(movingTimeTime))
+	fmt.Printf("Stopped time: %s\n", getTimeFormattedForStats(stoppedTimeTime))
+	fmt.Printf("Total time: %s\n", getTimeFormattedForStats(totalTime))
 
 	fmt.Println("")
 

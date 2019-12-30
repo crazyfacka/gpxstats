@@ -64,8 +64,6 @@ func getElevationDiff(point gpx.GPXPoint, points []gpx.GPXPoint) float64 {
 
 /* === */
 
-var maxSpeed float64
-
 func getSpeed(points []gpx.GPXPoint) float64 {
 	var previousPoint gpx.GPXPoint
 	var speedPoints []float64
