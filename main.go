@@ -84,7 +84,13 @@ func main() {
 	bytesRead := -1
 	buffer := make([]byte, 100)
 
-	file, err = os.Open("test.gpx")
+	gpxFilesToRead := os.Args[1:]
+	if len(gpxFilesToRead) < 1 {
+		fmt.Println("You must specify at least one GPX file to parse")
+		os.Exit(-1)
+	}
+
+	file, err = os.Open(gpxFilesToRead[0])
 	if err != nil {
 		fmt.Printf("Error opening file: %s\n", err.Error())
 		os.Exit(-1)
