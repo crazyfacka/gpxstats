@@ -75,42 +75,7 @@ func getStats(gpxFile *gpx.GPX) *stats {
 	return st
 }
 
-func main() {
-	var file *os.File
-	var gpxFile *gpx.GPX
-	var data []byte
-	var err error
-
-	bytesRead := -1
-	buffer := make([]byte, 100)
-
-	gpxFilesToRead := os.Args[1:]
-	if len(gpxFilesToRead) < 1 {
-		fmt.Println("You must specify at least one GPX file to parse")
-		os.Exit(-1)
-	}
-
-	file, err = os.Open(gpxFilesToRead[0])
-	if err != nil {
-		fmt.Printf("Error opening file: %s\n", err.Error())
-		os.Exit(-1)
-	}
-
-	defer file.Close()
-
-	for bytesRead != 0 {
-		bytesRead, err = file.Read(buffer)
-		data = append(data, buffer[:bytesRead]...)
-	}
-
-	gpxFile, err = gpx.ParseBytes(data)
-	if err != nil {
-		fmt.Printf("Error parsing GPX: %s\n", err.Error())
-		os.Exit(-1)
-	}
-
-	/* Print stats */
-
+func printSingleStats(gpxFile *gpx.GPX) {
 	st := getStats(gpxFile)
 
 	fmt.Println("== GPX File stats ==")
@@ -140,4 +105,50 @@ func main() {
 
 	fmt.Printf("Total distance: %.2f km\n", gpxFile.MovingData().MovingDistance/1000)
 	fmt.Printf("Maximum speed: %.2f km/h (%f, %f, %.2fm)\n", st.maxSpeed/10*3.6, st.maxSpeedPoint.Latitude, st.maxSpeedPoint.Longitude, st.maxSpeedPoint.Elevation.Value())
+}
+
+func main() {
+	var file *os.File
+	var gpxFiles []*gpx.GPX
+	var data []byte
+	var err error
+
+	bytesRead := -1
+	buffer := make([]byte, 100)
+
+	gpxFilesToRead := os.Args[1:]
+	if len(gpxFilesToRead) < 1 {
+		fmt.Println("You must specify at least one GPX file to parse")
+		os.Exit(-1)
+	}
+
+	gpxFiles = make([]*gpx.GPX, len(gpxFilesToRead))
+
+	for i, curFileToRead := range gpxFilesToRead {
+		file, err = os.Open(curFileToRead)
+		if err != nil {
+			fmt.Printf("Error opening file: %s\n", err.Error())
+			os.Exit(-1)
+		}
+
+		defer file.Close()
+
+		for bytesRead != 0 {
+			bytesRead, err = file.Read(buffer)
+			data = append(data, buffer[:bytesRead]...)
+		}
+
+		gpxFiles[i], err = gpx.ParseBytes(data)
+		if err != nil {
+			fmt.Printf("Error parsing GPX: %s\n", err.Error())
+			os.Exit(-1)
+		}
+
+		data = data[:0]
+	}
+
+	/* Print stats */
+	if len(gpxFiles) == 1 {
+		printSingleStats(gpxFiles[0])
+	}
 }
