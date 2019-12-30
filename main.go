@@ -76,7 +76,7 @@ func getStats(gpxFile *gpx.GPX) *stats {
 
 func getTimeFormattedForStats(t time.Time) string {
 	timeStamp := t.Format("15:04:05")
-	if t.Day() != 30 {
+	if t.Day() != 30 { // FIXME for when we have more than 30 days combined of resting or riding
 		timeStamp = fmt.Sprintf("%dd %s", t.Day(), timeStamp)
 	}
 
