@@ -1,10 +1,21 @@
-package main
+package tools
 
 import (
 	"math"
 
 	"github.com/tkrajina/gpxgo/gpx"
 )
+
+func getMean(values []float64) float64 {
+	var total float64
+	total = 0.0
+
+	for _, v := range values {
+		total += v
+	}
+
+	return math.Round(total / float64(len(values)))
+}
 
 /*
  * From: https://gist.github.com/cdipaolo/d3f8db3848278b49db68
@@ -31,21 +42,6 @@ func getDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 /* === */
 
-/*
- * To be replaced with geometric median
- */
-
-func getMean(values []float64) float64 {
-	var total float64
-	total = 0.0
-
-	for _, v := range values {
-		total += v
-	}
-
-	return math.Round(total / float64(len(values)))
-}
-
 func getElevationDiff(point gpx.GPXPoint, points []gpx.GPXPoint) float64 {
 	var elevationP float64
 	var elevationPoints []float64
@@ -61,8 +57,6 @@ func getElevationDiff(point gpx.GPXPoint, points []gpx.GPXPoint) float64 {
 
 	return leftMean - rightMean
 }
-
-/* === */
 
 func getSpeed(points []gpx.GPXPoint) float64 {
 	var previousPoint gpx.GPXPoint
