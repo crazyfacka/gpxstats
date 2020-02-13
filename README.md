@@ -2,29 +2,29 @@
 Stats output from GPX files
 
 ```
-.\gpxstats.exe .\20191020_frecha_mizarela.gpx
+$ docker run -it --rm -v ./gpxdata:/app/data crazyfacka/gpxstats data/20200209_mondim_n305.gpx
 == GPX File stats ==
 
-Filename: .\20191020_frecha_mizarela.gpx
+Filename: data/20200209_mondim_n305.gpx
 Name:
 Description:
 Author:
 
-Moving time: 04:49:02
-Stopped time: 05:21:54
-Total time: 10:10:56
+Moving time: 03:00:34
+Stopped time: 00:48:47
+Total time: 03:49:21
 
-Minimum elevation: -9.97m
-Maximum elevation: 1074.87m
+Minimum elevation: 30.89m
+Maximum elevation: 940.77m
 Max down gradient: -100.00% (0.000000, 0.000000, 0.00m) - BETA
-Max up gradient: 62.67% (41.086293, -8.291996, 34.73m) - BETA
+Max up gradient: 40.83% (41.335953, -7.863357, 680.25m) - BETA
 
-Total distance: 183.97 km
-Maximum speed: 121.00 km/h (41.183153, -8.645468, 92.89m)
+Total distance: 239.52 km
+Maximum speed: 145.00 km/h (41.375006, -8.503440, 85.68m)
 ```
 
 ```
-.\gpxstats.exe .\20191020_frecha_mizarela.gpx .\20191110_gilhofrei.gpx
+$ docker run -it --rm -v ./gpxdata:/app/data crazyfacka/gpxstats data/20191020_frecha_mizarela.gpx data/20191110_gilhofrei.gpx
 == GPX combined stats ==
 
 Moving time: 08:07:38
@@ -43,15 +43,12 @@ Maximum speed: 131.00 km/h (.\20191110_gilhofrei.gpx)
 
 ## Build
 
+You can use docker for that.
+
 ```
-$ go build
+$ docker build -t <image_name> .
 ```
-
-This will fetch all the necessary dependencies. Currently the only external dependency is:
-
-* github.com/tkrajina/gpxgo
-
 
 ## Run
 
-As seen above on the description
+As seen above on the description. You have a Docker image available @ https://hub.docker.com/r/crazyfacka/gpxstats
